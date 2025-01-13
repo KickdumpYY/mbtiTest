@@ -6,6 +6,7 @@ const nextConfig = {
   },
   output: 'export',
   basePath: '/mbtiTest',
+  assetPrefix: '/mbtiTest',
 }
 
 module.exports = nextConfig 
