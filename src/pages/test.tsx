@@ -4,7 +4,7 @@ import { Question } from '../types/question';
 import { standardQuestions } from '../data/standardQuestions';
 import { fullQuestions } from '../data/fullQuestions';
 import { shuffleQuestions } from '../utils/shuffleQuestions';
-import { DimensionResult, MBTIResult } from '../types/result';
+import { DimensionResult, MBTIResult, TestRecord } from '../types/result';
 import { personalities } from '../data/personalities';
 import { SafeImage } from '../components/SafeImage';
 import defaultImage from '../../public/images/mbti/default.png';
@@ -21,22 +21,105 @@ type ResultType = {
   P: number;
 };
 
+const API_BASE = process.env.NODE_ENV === 'production' ? '/mbtiTest' : '';
+
 export default function TestPage() {
   const router = useRouter();
-  const { version } = router.query;
+  const { version, username } = router.query;
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<number, 'a' | 'b'>>({});
   const [imageError, setImageError] = useState(false);
   const [isOptionsReversed, setIsOptionsReversed] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (version === 'standard') {
-      setQuestions(shuffleQuestions(standardQuestions));
-    } else if (version === 'full') {
-      setQuestions(shuffleQuestions(fullQuestions));
-    }
-  }, [version]);
+    const loadUserProgress = async () => {
+      if (!username) return;
+      
+      try {
+        const response = await fetch(`${API_BASE}/api/test-records?username=${encodeURIComponent(username as string)}`);
+        const record = await response.json();
+        
+        if (record) {
+          if (record.completed) {
+            // 如果测试已完成，直接显示结果
+            setQuestions(record.progress.questions || []);
+            setAnswers(record.progress.answers || {});
+            setCurrentQuestion(record.progress.questions?.length || 0);
+          } else if (record.progress) {
+            // 如果测试未完成，加载进度
+            setCurrentQuestion(record.progress.currentQuestion);
+            setAnswers(record.progress.answers);
+            if (record.progress.questions) {
+              setQuestions(record.progress.questions);
+            }
+          }
+        } else {
+          // 如果没有记录，创建新记录，包括随机生成的题目
+          const shuffledQuestions = version === 'standard' ? 
+            shuffleQuestions(standardQuestions) : 
+            shuffleQuestions(fullQuestions);
+          
+          setQuestions(shuffledQuestions);
+          
+          await fetch(`${API_BASE}/api/test-records`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              username,
+              progress: {
+                answers: {},
+                currentQuestion: 0,
+                version,
+                questions: shuffledQuestions,
+              },
+              completed: false,
+            }),
+          });
+        }
+      } catch (error) {
+        console.error('Error loading progress:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUserProgress();
+  }, [username, version]);
+
+  useEffect(() => {
+    const saveProgress = async () => {
+      if (!username || !questions.length) return;
+
+      try {
+        const progress = {
+          answers,
+          currentQuestion,
+          version,
+          questions, // 保存题目顺序
+        };
+
+        await fetch(`${API_BASE}/api/test-records`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username,
+            progress,
+            completed: false,
+          }),
+        });
+      } catch (error) {
+        console.error('Error saving progress:', error);
+      }
+    };
+
+    saveProgress();
+  }, [answers, currentQuestion, username, version, questions]);
 
   const calculateDetailedResult = (): MBTIResult => {
     const result: ResultType = {
@@ -79,13 +162,34 @@ export default function TestPage() {
     };
   };
 
-  const handleAnswer = (answer: 'a' | 'b') => {
-    setAnswers(prev => ({
-      ...prev,
+  const handleAnswer = async (answer: 'a' | 'b') => {
+    const newAnswers = {
+      ...answers,
       [currentQuestion]: answer
-    }));
+    };
+    setAnswers(newAnswers);
     setCurrentQuestion(prev => prev + 1);
     setIsOptionsReversed(Math.random() < 0.5);
+
+    if (currentQuestion === questions.length - 1) {
+      try {
+        const result = calculateDetailedResult();
+        await fetch(`${API_BASE}/api/test-records`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username,
+            result,
+            completed: true,
+            completedAt: new Date(),
+          }),
+        });
+      } catch (error) {
+        console.error('Error saving result:', error);
+      }
+    }
   };
 
   const formatDimensionLabel = (dim: DimensionResult) => {
@@ -115,6 +219,67 @@ export default function TestPage() {
     );
   };
 
+  const handleStartNewTest = async () => {
+    // 创建新的测试记录
+    const shuffledQuestions = version === 'standard' ? 
+      shuffleQuestions(standardQuestions) : 
+      shuffleQuestions(fullQuestions);
+    
+    setQuestions(shuffledQuestions);
+    setCurrentQuestion(0);
+    setAnswers({});
+    
+    try {
+      await fetch(`${API_BASE}/api/test-records`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username,
+          progress: {
+            answers: {},
+            currentQuestion: 0,
+            version,
+            questions: shuffledQuestions,
+          },
+          completed: false,
+          startedAt: new Date(),
+        }),
+      });
+    } catch (error) {
+      console.error('Error creating new test:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-lg">加载中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!username) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-bold mb-4">错误</h2>
+          <p className="text-gray-600 mb-4">请先输入用户名再开始测试。</p>
+          <button
+            onClick={() => router.push('/')}
+            className="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            返回首页
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (currentQuestion >= questions.length) {
     const result = calculateDetailedResult();
     const personality = personalities[result.type];
@@ -124,15 +289,20 @@ export default function TestPage() {
         <div className="container mx-auto px-4 py-8 max-w-2xl">
           <h2 className="text-2xl font-bold mb-4">出错了</h2>
           <p>无法找到对应的性格类型信息</p>
-          <button
-            onClick={() => {
-              setCurrentQuestion(0);
-              setAnswers({});
-            }}
-            className="w-full px-4 py-3 bg-teal-500 text-white rounded hover:bg-teal-600 transition-colors"
-          >
-            重新测试
-          </button>
+          <div className="space-y-4">
+            <button
+              onClick={handleStartNewTest}
+              className="w-full px-4 py-3 bg-teal-500 text-white rounded hover:bg-teal-600 transition-colors"
+            >
+              重新测试
+            </button>
+            <button
+              onClick={() => router.push('/')}
+              className="w-full px-4 py-3 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+            >
+              返回首页
+            </button>
+          </div>
         </div>
       );
     }
@@ -239,59 +409,79 @@ export default function TestPage() {
           </div>
         </div>
 
-        <button
-          onClick={() => {
-            setCurrentQuestion(0);
-            setAnswers({});
-          }}
-          className="w-full px-4 py-3 bg-teal-500 text-white rounded hover:bg-teal-600 transition-colors"
-        >
-          重新测试
-        </button>
+        <div className="space-y-4 mt-6">
+          <button
+            onClick={handleStartNewTest}
+            className="w-full px-4 py-3 bg-teal-500 text-white rounded hover:bg-teal-600 transition-colors"
+          >
+            重新测试
+          </button>
+          <button
+            onClick={() => router.push('/')}
+            className="w-full px-4 py-3 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
+          >
+            返回首页
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-4">
-        <span className="text-sm text-gray-500">
-          问题 {currentQuestion + 1} / {questions.length}
-        </span>
+      <div className="mb-6 bg-white rounded-lg shadow-lg p-4">
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-lg font-semibold">问题 {currentQuestion + 1} / {questions.length}</p>
+          <p className="text-sm text-gray-600">
+            预计剩余时间: {Math.ceil((questions.length - currentQuestion - 1) * 0.25)} 分钟
+          </p>
+        </div>
+        <div className="text-xs text-gray-500 mb-2">
+          Debug: Progress = {Math.round(((currentQuestion + 1) / questions.length) * 100)}%
+        </div>
+        <div className="w-full bg-gray-200 rounded-lg h-4">
+          <div 
+            className="bg-blue-600 h-4 rounded-lg transition-all duration-300"
+            style={{ width: `${Math.round(((currentQuestion + 1) / questions.length) * 100)}%` }}
+          />
+        </div>
       </div>
-      <h2 className="text-xl mb-4">{questions[currentQuestion].text}</h2>
-      <div className="space-y-4">
-        {isOptionsReversed ? (
-          <>
-            <button
-              className="w-full p-4 bg-blue-500 text-white rounded hover:bg-blue-600"
-              onClick={() => handleAnswer('b')}
-            >
-              {questions[currentQuestion].options.b}
-            </button>
-            <button
-              className="w-full p-4 bg-blue-500 text-white rounded hover:bg-blue-600"
-              onClick={() => handleAnswer('a')}
-            >
-              {questions[currentQuestion].options.a}
-            </button>
-          </>
-        ) : (
-          <>
-            <button
-              className="w-full p-4 bg-blue-500 text-white rounded hover:bg-blue-600"
-              onClick={() => handleAnswer('a')}
-            >
-              {questions[currentQuestion].options.a}
-            </button>
-            <button
-              className="w-full p-4 bg-blue-500 text-white rounded hover:bg-blue-600"
-              onClick={() => handleAnswer('b')}
-            >
-              {questions[currentQuestion].options.b}
-            </button>
-          </>
-        )}
+
+      <div className="bg-white rounded-lg shadow-lg p-6 mt-4">
+        <p className="text-lg mb-6">{questions[currentQuestion].text}</p>
+        <div className="space-y-4">
+          {isOptionsReversed ? (
+            <>
+              <button
+                className="w-full p-4 bg-blue-500 text-white rounded hover:bg-blue-600"
+                onClick={() => handleAnswer('b')}
+              >
+                {questions[currentQuestion].options.b}
+              </button>
+              <button
+                className="w-full p-4 bg-blue-500 text-white rounded hover:bg-blue-600"
+                onClick={() => handleAnswer('a')}
+              >
+                {questions[currentQuestion].options.a}
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                className="w-full p-4 bg-blue-500 text-white rounded hover:bg-blue-600"
+                onClick={() => handleAnswer('a')}
+              >
+                {questions[currentQuestion].options.a}
+              </button>
+              <button
+                className="w-full p-4 bg-blue-500 text-white rounded hover:bg-blue-600"
+                onClick={() => handleAnswer('b')}
+              >
+                {questions[currentQuestion].options.b}
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

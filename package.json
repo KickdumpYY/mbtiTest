@@ -10,6 +10,8 @@
     "deploy": "next build && touch out/.nojekyll && git add out/ && git commit -m \"Deploy\" && git subtree push --prefix out origin gh-pages"
   },
   "dependencies": {
+    "mongodb": "^4.17.2",
+    "mongoose": "^6.12.3",
     "next": "^13.3.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

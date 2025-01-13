@@ -5,11 +5,9 @@ const nextConfig = {
     unoptimized: true,
     loader: 'default',
     path: '/mbtiTest',
-    domains: ['kickdumpyy.github.io'],
   },
-  output: 'export',
-  basePath: '/mbtiTest',
-  assetPrefix: '/mbtiTest',
+  basePath: process.env.NODE_ENV === 'production' ? '/mbtiTest' : '',
+  assetPrefix: process.env.NODE_ENV === 'production' ? '/mbtiTest' : '',
 }
 
 module.exports = nextConfig 

@@ -1,3 +1,5 @@
+import { Question } from './question';
+
 export type DimensionResult = {
   dimension: string;
   primary: string;
@@ -14,4 +16,21 @@ export type MBTIResult = {
     TF: DimensionResult;
     JP: DimensionResult;
   };
+};
+
+export type TestProgress = {
+  answers: Record<number, 'a' | 'b'>;
+  currentQuestion: number;
+  version: string;
+  questions: Question[];
+};
+
+export type TestRecord = {
+  username: string;
+  progress?: TestProgress;
+  result?: MBTIResult;
+  completed: boolean;
+  startedAt: Date;
+  lastUpdated: Date;
+  completedAt?: Date;
 }; 
