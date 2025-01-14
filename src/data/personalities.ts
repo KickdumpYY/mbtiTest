@@ -5,7 +5,7 @@ export const personalities: Record<string, PersonalityType> = {
     code: "ESTJ",
     nickname: "管理者",
     title: "The Executive",
-    image: "/mbtiTest/images/mbti/ESTJ.png",
+    image: "/images/ESTJ.png",
     description: "ESTJ型人格是天生的管理者。他们相信秩序和传统，实事求是的态度使他们能够轻松地做出决定或组织活动。他们重视真理和事实，尊重传统，遵守规则。",
     characteristics: {
       strengths: [
@@ -50,7 +50,7 @@ export const personalities: Record<string, PersonalityType> = {
     code: "INFJ",
     nickname: "提倡者",
     title: "The Advocate",
-    image: "/mbtiTest/images/mbti/INFJ.png",
+    image: "/images/INFJ.png",
     description: "INFJ型人格是理想主义者和完美主义者。他们具有强烈的个人价值观，追求帮助他人和创造更美好的世界。他们富有同情心、理解力和洞察力。",
     characteristics: {
       strengths: [
@@ -95,7 +95,7 @@ export const personalities: Record<string, PersonalityType> = {
     code: "INTJ",
     nickname: "建筑师",
     title: "The Architect",
-    image: "/mbtiTest/images/mbti/INTJ.png",
+    image: "/images/INTJ.png",
     description: "INTJ型人格是完美主义者，擅长通过创新的方式解决问题。他们具有强大的分析能力和战略思维，追求持续的自我提升和知识积累。",
     characteristics: {
       strengths: [
@@ -140,7 +140,7 @@ export const personalities: Record<string, PersonalityType> = {
     code: "INTP",
     nickname: "逻辑学家",
     title: "The Logician",
-    image: "/mbtiTest/images/mbti/INTP.png",
+    image: "/images/INTP.png",
     description: "INTP型人格是创新者和发明家，他们热爱理论和抽象思维，总是寻求真理和知识。他们擅长发现模式，解决复杂问题。",
     characteristics: {
       strengths: [
@@ -185,7 +185,7 @@ export const personalities: Record<string, PersonalityType> = {
     code: "ENTJ",
     nickname: "指挥官",
     title: "The Commander",
-    image: "/mbtiTest/images/mbti/ENTJ.png",
+    image: "/images/ENTJ.png",
     description: "ENTJ型人格是天生的领导者，他们具有出色的组织能力和战略眼光。他们自信、果断，善于制定计划并付诸实施。",
     characteristics: {
       strengths: [
@@ -230,7 +230,7 @@ export const personalities: Record<string, PersonalityType> = {
     code: "ENTP",
     nickname: "辩论家",
     title: "The Debater",
-    image: "/mbtiTest/images/mbti/ENTP.png",
+    image: "/images/ENTP.png",
     description: "ENTP型人格是思想家和创新者，他们喜欢挑战传统观念，善于辩论。他们充满创造力，擅长发现新的可能性。",
     characteristics: {
       strengths: [
@@ -275,7 +275,7 @@ export const personalities: Record<string, PersonalityType> = {
     code: "INFP",
     nickname: "调停者",
     title: "The Mediator",
-    image: "/mbtiTest/images/mbti/INFP.png",
+    image: "/images/INFP.png",
     description: "INFP型人格是理想主义者，他们富有同情心和创造力，总是寻求内在的和谐与个人价值的实现。他们重视真实性和成长。",
     characteristics: {
       strengths: [
@@ -320,7 +320,7 @@ export const personalities: Record<string, PersonalityType> = {
     code: "ENFJ",
     nickname: "主人公",
     title: "The Protagonist",
-    image: "/mbtiTest/images/mbti/ENFJ.png",
+    image: "/images/ENFJ.png",
     description: "ENFJ型人格是天生的领导者和教导者，他们热情、富有魅力，善于激励他人。他们关注他人的成长和发展，乐于帮助他人实现潜能。",
     characteristics: {
       strengths: [
@@ -365,7 +365,7 @@ export const personalities: Record<string, PersonalityType> = {
     code: "ENFP",
     nickname: "探险家",
     title: "The Campaigner",
-    image: "/mbtiTest/images/mbti/ENFP.png",
+    image: "/images/ENFP.png",
     description: "ENFP型人格充满热情和创造力，他们活力四射，善于发现可能性。他们重视自由和创新，乐于尝试新事物。",
     characteristics: {
       strengths: [
@@ -410,7 +410,7 @@ export const personalities: Record<string, PersonalityType> = {
     code: "ISTJ",
     nickname: "检查者",
     title: "The Inspector",
-    image: "/mbtiTest/images/mbti/ISTJ.png",
+    image: "/images/ISTJ.png",
     description: "ISTJ型人格是认真负责的实干家，他们注重传统和秩序，做事一丝不苟。他们重视可靠性和诚实，善于处理具体细节。",
     characteristics: {
       strengths: [
@@ -455,7 +455,7 @@ export const personalities: Record<string, PersonalityType> = {
     code: "ISFJ",
     nickname: "守护者",
     title: "The Protector",
-    image: "/mbtiTest/images/mbti/ISFJ.png",
+    image: "/images/ISFJ.png",
     description: "ISFJ型人格是细心的照顾者，他们富有同情心，注重细节和传统。他们乐于服务他人，具有强烈的责任感。",
     characteristics: {
       strengths: [
@@ -500,7 +500,7 @@ export const personalities: Record<string, PersonalityType> = {
     code: "ISTP",
     nickname: "鉴赏家",
     title: "The Virtuoso",
-    image: "/mbtiTest/images/mbti/ISTP.png",
+    image: "/images/ISTP.png",
     description: "ISTP型人格是灵活的问题解决者，他们善于观察和分析，喜欢动手实践。他们冷静理性，适应力强。",
     characteristics: {
       strengths: [
@@ -545,7 +545,7 @@ export const personalities: Record<string, PersonalityType> = {
     code: "ISFP",
     nickname: "艺术家",
     title: "The Adventurer",
-    image: "/mbtiTest/images/mbti/ISFP.png",
+    image: "/images/ISFP.png",
     description: "ISFP型人格是艺术家和探险家，他们富有同情心，重视美感和自由。他们生活在当下，享受感官体验。",
     characteristics: {
       strengths: [
@@ -590,7 +590,7 @@ export const personalities: Record<string, PersonalityType> = {
     code: "ESTP",
     nickname: "企业家",
     title: "The Entrepreneur",
-    image: "/mbtiTest/images/mbti/ESTP.png",
+    image: "/images/ESTP.png",
     description: "ESTP型人格是充满活力的冒险者，他们善于把握机会，喜欢行动和刺激。他们实用主义，适应力强。",
     characteristics: {
       strengths: [
@@ -635,7 +635,7 @@ export const personalities: Record<string, PersonalityType> = {
     code: "ESFP",
     nickname: "表演者",
     title: "The Entertainer",
-    image: "/mbtiTest/images/mbti/ESFP.png",
+    image: "/images/ESFP.png",
     description: "ESFP型人格是热情的表演者，他们活在当下，热爱生活和娱乐。他们善于交际，富有同情心。",
     characteristics: {
       strengths: [
@@ -680,7 +680,7 @@ export const personalities: Record<string, PersonalityType> = {
     code: "ESFJ",
     nickname: "执政官",
     title: "The Consul",
-    image: "/mbtiTest/images/mbti/ESFJ.png",
+    image: "/images/ESFJ.png",
     description: "ESFJ型人格是热心的照顾者，他们重视传统和秩序，乐于服务他人。他们善于组织，注重和谐。",
     characteristics: {
       strengths: [
