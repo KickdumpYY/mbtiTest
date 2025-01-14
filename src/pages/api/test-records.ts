@@ -14,8 +14,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (!username) {
           return res.status(400).json({ error: 'Username is required' });
         }
-        const record = await collection.findOne({ username });
-        return res.status(200).json(record || null);
+        const records = await collection
+          .find({ username })
+          .sort({ lastUpdated: -1 })
+          .toArray();
+        return res.status(200).json(records);
 
       case 'POST':
         const { username: newUsername, ...data } = req.body;
@@ -24,19 +27,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         const now = new Date();
-        const newRecord: TestRecord = {
+        const newRecord = {
           username: newUsername,
           ...data,
-          startedAt: now,
+          startedAt: data.startedAt || now,
           lastUpdated: now,
-          completed: false,
+          completedAt: data.completed ? (data.completedAt || now) : undefined,
         };
 
-        await collection.updateOne(
-          { username: newUsername },
-          { $set: newRecord },
-          { upsert: true }
-        );
+        await collection.insertOne(newRecord);
         return res.status(200).json(newRecord);
 
       case 'PUT':
@@ -45,13 +44,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           return res.status(400).json({ error: 'Username is required' });
         }
 
+        // 查找最新的未完成记录
+        const latestRecord = await collection
+          .find({ 
+            username: updateUsername,
+            completed: false 
+          })
+          .sort({ lastUpdated: -1 })
+          .limit(1)
+          .toArray();
+
+        if (latestRecord.length === 0) {
+          return res.status(404).json({ error: 'No incomplete record found' });
+        }
+
         const updatedRecord = {
           ...updateData,
           lastUpdated: new Date(),
         };
 
         await collection.updateOne(
-          { username: updateUsername },
+          { _id: latestRecord[0]._id },
           { $set: updatedRecord }
         );
         return res.status(200).json(updatedRecord);

@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { TestRecord } from '../types/result';
 import { personalities } from '../data/personalities';
 
-const API_BASE = process.env.NODE_ENV === 'production' ? '/mbtiTest' : '';
+const API_BASE = '';
 
 export default function HomePage() {
   const router = useRouter();
@@ -128,7 +128,7 @@ export default function HomePage() {
           </div>
         )}
 
-        {searchUsername && !loading && !searchResult && (
+        {searchUsername && !loading && searchResults.length === 0 && (
           <div className="border-t pt-4">
             <div className="bg-gray-50 border-l-4 border-gray-500 p-4">
               <p className="font-semibold text-gray-700">您还没测试过哦！</p>
@@ -137,122 +137,68 @@ export default function HomePage() {
           </div>
         )}
 
-        {searchResult && (
-          <div className="border-t pt-4">
-            {!searchResult.completed && searchResult.progress && 
-             ((searchResult.progress.version === 'standard' && searchResult.progress.currentQuestion < 92) ||
-              (searchResult.progress.version === 'full' && searchResult.progress.currentQuestion < 144)) && (
-              <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-4">
-                <p className="font-bold">发现未完成的测试！</p>
-                <p className="text-sm text-gray-700">
-                  你上次做到第 {searchResult.progress?.currentQuestion + 1} 题，
-                  <button
-                    onClick={() => router.push(`/test?version=${searchResult.progress?.version}&username=${encodeURIComponent(searchUsername)}`)}
-                    className="text-blue-500 hover:underline"
-                  >
-                    点击继续测试
-                  </button>
-                </p>
-              </div>
-            )}
-            
-            {(searchResult.completed || 
-              (searchResult.progress && 
-               ((searchResult.progress.version === 'standard' && searchResult.progress.currentQuestion >= 92) ||
-                (searchResult.progress.version === 'full' && searchResult.progress.currentQuestion >= 144)))) && (
-              <div>
-                <p className="font-bold mb-2">最近完成的测试</p>
-                <div className="flex flex-col space-y-2 mb-4">
-                  <p>类型: {searchResult.result?.type}</p>
-                  <p>完成时间: {new Date(searchResult.completedAt!).toLocaleString()}</p>
-                </div>
-                {searchResult.result?.type && (
-                  <div className="flex flex-col items-center mb-4">
-                    <div className="relative w-[200px] h-[200px]">
-                      <Image
-                        src={`/mbtiTest/images/${searchResult.result.type.toLowerCase()}.png`}
-                        alt={`MBTI ${searchResult.result.type} 类型图片`}
-                        width={200}
-                        height={200}
-                        style={{ objectFit: 'contain' }}
-                      />
+        {searchResults.length > 0 && (
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold mb-4">测试历史记录</h3>
+            <div className="space-y-4">
+              {searchResults.map((record, index) => (
+                <div key={index} className="bg-white rounded-lg shadow p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-4">
+                        {record.result?.type && (
+                          <div className="relative w-16 h-16">
+                            <Image
+                              src={`/mbtiTest/images/${record.result.type.toLowerCase()}.png`}
+                              alt={`MBTI ${record.result.type} 类型图片`}
+                              fill
+                              style={{ objectFit: 'contain' }}
+                            />
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-semibold">
+                            {record.completed ? 
+                              `类型: ${record.result?.type}` : 
+                              `进行中: 第 ${(record.progress?.currentQuestion ?? 0) + 1} 题`}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {record.completed ? 
+                              `完成时间: ${new Date(record.completedAt || '').toLocaleString()}` :
+                              `上次更新: ${new Date(record.lastUpdated).toLocaleString()}`}
+                          </p>
+                          {record.result?.type && (
+                            <p className="text-sm text-gray-600 mt-1">
+                              {personalities[record.result.type]?.nickname} ({personalities[record.result.type]?.title})
+                            </p>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-xl font-bold text-blue-600 mt-2">{searchResult.result.type}</p>
+                    <div className="ml-4">
+                      {record.completed ? (
+                        <Link
+                          href={`/test?username=${encodeURIComponent(searchUsername)}&version=${record.progress?.version || 'standard'}`}
+                          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        >
+                          查看详细结果
+                        </Link>
+                      ) : (
+                        <Link
+                          href={`/test?username=${encodeURIComponent(searchUsername)}&version=${record.progress?.version || 'standard'}`}
+                          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                        >
+                          继续测试
+                        </Link>
+                      )}
+                    </div>
                   </div>
-                )}
-                <div className="mt-2">
-                  <button
-                    onClick={() => router.push(`/test?version=${searchResult.progress?.version}&username=${encodeURIComponent(searchUsername)}`)}
-                    className="text-blue-500 hover:underline"
-                  >
-                    查看详细结果
-                  </button>
                 </div>
-              </div>
-            )}
+              ))}
+            </div>
           </div>
         )}
       </div>
-
-      {searchResults.length > 0 && (
-        <div className="mt-6">
-          <h3 className="text-lg font-semibold mb-4">测试历史记录</h3>
-          <div className="space-y-4">
-            {searchResults.map((record, index) => (
-              <div key={index} className="bg-white rounded-lg shadow p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-4">
-                      {record.result?.type && (
-                        <div className="relative w-16 h-16">
-                          <Image
-                            src={`/mbtiTest/images/${record.result.type.toLowerCase()}.png`}
-                            alt={`MBTI ${record.result.type} 类型图片`}
-                            fill
-                            style={{ objectFit: 'contain' }}
-                          />
-                        </div>
-                      )}
-                      <div>
-                        <p className="font-semibold">
-                          类型: {record.result?.type || '进行中'}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {record.completed ? 
-                            `完成时间: ${new Date(record.completedAt || '').toLocaleString()}` :
-                            `上次进度: 第 ${(record.progress?.currentQuestion ?? 0) + 1} 题`}
-                        </p>
-                        {record.result?.type && (
-                          <p className="text-sm text-gray-600 mt-1">
-                            {personalities[record.result.type]?.nickname} ({personalities[record.result.type]?.title})
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    {record.completed ? (
-                      <Link
-                        href={`/test?username=${encodeURIComponent(searchUsername)}&version=${record.progress?.version || 'standard'}`}
-                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                      >
-                        查看详细结果
-                      </Link>
-                    ) : (
-                      <Link
-                        href={`/test?username=${encodeURIComponent(searchUsername)}&version=${record.progress?.version || 'standard'}`}
-                        className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-                      >
-                        继续测试
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 } 

@@ -21,7 +21,7 @@ type ResultType = {
   P: number;
 };
 
-const API_BASE = process.env.NODE_ENV === 'production' ? '/mbtiTest' : '';
+const API_BASE = '';
 
 export default function TestPage() {
   const router = useRouter();
@@ -39,24 +39,21 @@ export default function TestPage() {
       
       try {
         const response = await fetch(`${API_BASE}/api/test-records?username=${encodeURIComponent(username as string)}`);
-        const record = await response.json();
+        const records = await response.json();
         
-        if (record) {
-          if (record.completed) {
-            // 如果测试已完成，直接显示结果
-            setQuestions(record.progress.questions || []);
-            setAnswers(record.progress.answers || {});
-            setCurrentQuestion(record.progress.questions?.length || 0);
-          } else if (record.progress) {
-            // 如果测试未完成，加载进度
-            setCurrentQuestion(record.progress.currentQuestion);
-            setAnswers(record.progress.answers);
-            if (record.progress.questions) {
-              setQuestions(record.progress.questions);
-            }
+        // 找到最新的未完成记录
+        const latestIncompleteRecord = Array.isArray(records) ? 
+          records.find(record => !record.completed) : null;
+        
+        if (latestIncompleteRecord) {
+          // 如果有未完成的记录，加载进度
+          setCurrentQuestion(latestIncompleteRecord.progress.currentQuestion);
+          setAnswers(latestIncompleteRecord.progress.answers);
+          if (latestIncompleteRecord.progress.questions) {
+            setQuestions(latestIncompleteRecord.progress.questions);
           }
         } else {
-          // 如果没有记录，创建新记录，包括随机生成的题目
+          // 如果没有未完成的记录，创建新记录
           const shuffledQuestions = version === 'standard' ? 
             shuffleQuestions(standardQuestions) : 
             shuffleQuestions(fullQuestions);
@@ -174,6 +171,38 @@ export default function TestPage() {
     if (currentQuestion === questions.length - 1) {
       try {
         const result = calculateDetailedResult();
+        const personalityType = Object.values(result.dimensions)
+          .map(dim => dim.primary)
+          .join('');
+        
+        // 创建新的完成记录，包含完整的测试结果
+        await fetch(`${API_BASE}/api/test-records`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username,
+            progress: {
+              answers: newAnswers,
+              currentQuestion: currentQuestion + 1,
+              version,
+              questions,
+            },
+            result: {
+              dimensions: Object.values(result.dimensions),
+              personalityType,
+              detailedResult: result
+            },
+            completed: true,
+            completedAt: new Date(),
+          }),
+        });
+      } catch (error) {
+        console.error('Error saving result:', error);
+      }
+    } else {
+      try {
         await fetch(`${API_BASE}/api/test-records`, {
           method: 'PUT',
           headers: {
@@ -181,13 +210,16 @@ export default function TestPage() {
           },
           body: JSON.stringify({
             username,
-            result,
-            completed: true,
-            completedAt: new Date(),
+            progress: {
+              answers: newAnswers,
+              currentQuestion: currentQuestion + 1,
+              version,
+              questions,
+            },
           }),
         });
       } catch (error) {
-        console.error('Error saving result:', error);
+        console.error('Error saving progress:', error);
       }
     }
   };

@@ -3,11 +3,8 @@ const nextConfig = {
   reactStrictMode: true,
   images: {
     unoptimized: true,
-    loader: 'default',
-    path: '/mbtiTest',
+    domains: ['kickdumpyy.github.io'],
   },
-  basePath: process.env.NODE_ENV === 'production' ? '/mbtiTest' : '',
-  assetPrefix: process.env.NODE_ENV === 'production' ? '/mbtiTest' : '',
 }
 
 module.exports = nextConfig 

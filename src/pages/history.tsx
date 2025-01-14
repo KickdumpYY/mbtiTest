@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { personalities } from '../data/personalities';
 import { TestRecord } from '../types/result';
 
-const API_BASE = process.env.NODE_ENV === 'production' ? '/mbtiTest' : '';
+const API_BASE = '';
 
 export default function HistoryPage() {
   const router = useRouter();
