@@ -7,7 +7,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**.railway.app',
+        hostname: '**.onrender.com',
       },
     ],
   },
