@@ -5,14 +5,11 @@ const nextConfig = {
     unoptimized: true,
     loader: 'default',
     path: '',
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**.onrender.com',
-      },
-    ],
+    domains: ['mbtitest.onrender.com']
   },
   output: 'standalone',
+  basePath: '',
+  assetPrefix: '',
 }
 
 module.exports = nextConfig 
