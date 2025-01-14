@@ -149,7 +149,7 @@ export default function HomePage() {
                         {record.result?.type && (
                           <div className="relative w-16 h-16">
                             <Image
-                              src={`/mbtiTest/images/${record.result.type.toLowerCase()}.png`}
+                              src={personalities[record.result.type].image}
                               alt={`MBTI ${record.result.type} 类型图片`}
                               fill
                               style={{ objectFit: 'contain' }}
