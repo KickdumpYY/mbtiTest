@@ -3,7 +3,8 @@ const nextConfig = {
   reactStrictMode: true,
   images: {
     unoptimized: true,
-    domains: ['kickdumpyy.github.io'],
+    loader: 'default',
+    path: '',
     remotePatterns: [
       {
         protocol: 'https',
